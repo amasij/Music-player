@@ -1,0 +1,111 @@
+.card{
+
+	 -webkit-transition: width 0.3s; /* For Safari 3.1 to 6.0 */
+  		transition: width 0.3s;
+  		background-color: #181818;
+  		color: white;
+}
+.card:hover{
+	
+	z-index: 10;
+}
+
+.card-img-top{
+	width: 100%;
+	height: auto;
+}
+
+.card-text
+{
+	font-size: 0.8rem;
+
+}
+
+.image-container {
+   
+}
+.image-container .after {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: none;
+    color: #FFF;
+    background: rgba(0, 0, 0, .6);
+}
+.after-content
+{
+	text-align: center;
+	margin: auto;
+	height: 100%;
+    width: 100%;
+}
+.image-container:hover .after {
+    display: block;
+    
+    background: rgba(0, 0, 0, .6);
+}
+.aa{
+	border:1px dotted red;
+}
+.ab{
+	border:1px dotted blue;
+}
+.center
+{
+	display: flex;justify-content: center;align-items: center;
+}
+.carousel-inner{
+	width: 100%;
+	max-height: 200px !important;
+}
+#content-img{
+	background-image: url('img/1.jpg');
+	filter: blur(8px);
+	height: 100%;
+	background-position: center;
+	background-repeat: no-repeat;
+	background-size: cover;
+}
+
+#bg{
+	position: fixed;
+	top: 0px;
+	left: 0px;
+	-webkit-filter:blur(12px);
+	background-size: cover;
+	width: 100%;
+	height: 100%;
+	
+
+}
+#nav-player
+{
+	background-color: #212121;
+}
+.theme-control{
+color: white;
+cursor: pointer;
+}
+.theme-control:hover
+{
+	color: #ff065a;
+}
+.theme-bg{
+	background-color: #ff065a;
+}
+.theme-bg-trans
+{
+	border:1px solid #ff065a;
+	background-color: transparent;
+	color:white;
+}
+.theme-bg-trans:hover{
+	background-color: #ff065a;
+	color: white;
+}
+.btn:focus {
+    outline: 0;
+    box-shadow: 0 0 0 0.2rem #ff065a40;
+}

@@ -1,0 +1,805 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+
+    <link rel="stylesheet" href="ex/bootstrap.min.css">
+    <link rel="stylesheet" href="custom.css">
+    <link rel="stylesheet" type="text/css" href="fa.css">
+    <script type="text/javascript" src="fa.js"></script>
+
+   
+    
+<style type="text/css">
+.btn-outline-secondary:hover
+{
+  background-color: #ff065a;
+  }
+  .titlebar{
+    -webkit-user-select:none;
+    -webkit-app-region:drag;
+  }
+  .titlebar #quit{
+    -webkit-app-region:no-drag;
+  }
+</style>
+    <title>BGT Music Player</title>
+  </head>
+  <body style="background-color: #131212;">
+    <div style="background-color: #131212;color:white;position: absolute;top: 0px;left: 0px;height: 20px;width: 100%;" class="titlebar">
+  <button id="quit" style="background-color: blue;cursor: pointer;">X</button>
+</div>
+ <div style="">
+  <img id="bg">
+ </div>
+
+
+
+
+ 
+  <div class="container-fluid" >
+<div class="row">
+  <div class="col-sm-2">
+     <div  style="background-color: #212121;position: fixed;top: 20px;left:0px;height: 100%;width: 220px;max-height: 100%;" class="">
+
+       <div style="color: white;text-align: center;margin-top: 20px;margin-right: 5px;margin-left: 5px;display: none;" class="">
+        <div class="input-group">
+          <input type="text" name="" class="form-control" placeholder="Search" aria-label="Search" aria-describeby="basic-addon2" id="searchbar">
+          <div class="input-group-append">
+            <button class="btn theme-bg-trans" type="button"  id="search"><span  ><i class="fas fa-search"></i></span></button>
+          </div>
+        </div>
+       
+      </div>
+
+      <div style="color: white;text-align: center;margin-top: 50px;" class="">
+       <button class="btn theme-bg-trans btn-block opendir" style="margin-left: 8px;width: 90%;display:none;font-weight: bolder;"  >Open Folder</button>
+      </div>
+
+      <div style="color: white;text-align: center;margin-top: 50px;" class="">
+       <button class="btn theme-bg-trans btn-block" style="margin-left: 8px;width: 90%;display:none;font-weight: bolder;" id="homebtn" >Home</button>
+      </div>
+
+
+      <div style="position: absolute;bottom: 65px;border-bottom:2px inset black;" id="now-playing-border">
+               <img class="thumbail img-fluid" id="now-playing-img" src="home-default.jpg">
+       <div style="color: white;padding: 1.2em;" class="center">
+         <marquee scrollamount="2"> <span style="color:white;" id="now-playing"></span></marquee>
+       </div>
+      </div>
+
+     </div>
+  </div>
+  <div class="col-sm-10" >
+
+    <br><br> 
+   
+    <div id="content" style="z-index: 10;">
+      <div class="row ">
+        <div class="col-sm-1 "></div>
+        <div class="col-sm-9 ">
+                <center>
+        
+          <button class="btn  theme-bg-trans center opendir" style="margin: 0px;position: absolute;top: 50%;left: 50%;transform:translate(-110%,600%); " >
+    Open Folder
+  </button>
+        
+        </div>
+        <div class="col-sm-2 "></div>
+      </div>
+
+         
+      </center>
+ 
+</div>
+  </div>
+  
+</div>
+
+</div>
+
+  <script type="text/javascript">
+    var jsdom=require('jsdom')
+      const{JSDOM}=jsdom;
+      global.document=document;
+      var $=jQuery=require('jquery');
+  </script>
+    <script src="ex/popper.min.js"></script>
+    <script src="ex/bootstrap.min.js"></script>
+    <script type="text/javascript">
+     // require('./home.js')
+     const ipc = require('electron').ipcRenderer
+     
+      require('./renderer.js')
+      const mm=require('music-metadata');
+      
+      $(function () {
+      $('[data-toggle="tooltip"]').tooltip()
+      })
+      current=false;
+      currentId=false;
+      pCurrent=0;
+      paused=false;
+      pHandler='';
+      saveseek=0;
+      soundId=0;
+      duration=0;
+      mute=false;
+      noStyle=false;
+      replay=false;
+      random=false;
+      temprand=false;
+      theme_color='#ff065a';
+      volume=1;
+      currentPlayList=JSON.parse(JSON.stringify(trackList));
+      currentPlayListClone=JSON.parse(JSON.stringify(currentPlayList));
+
+    </script>
+
+
+    <br><br><br>
+    <div class="container-fluid">
+      <nav class="fixed-bottom " style="position: fixed;height:65px;" id="nav-player">
+        <div class="row" style="margin-top: 0px">
+          <div class="col-sm-2 center " style="margin-top:29px;">
+            <div class="row " style="margin-left:auto;">
+              <div class="col-sm-4 ">
+
+                <span class="theme-control" data-toggle="tooltip" data-placement="top" title="Reload" id="reload"><i class="fas fa-redo"></i></span>
+              </div>
+              <div class="col-sm-4 " data-toggle="tooltip" data-placement="top" title="Random">
+                <span  class="theme-control" id="random"><i class="fas fa-random"></i></span>
+              </div>
+              <div class="col-sm-4 ">
+                <span  class="theme-control" data-toggle="tooltip" data-placement="top" title="Replay" id="replay">
+                  <i class="fas fa-sync"></i></span>
+              </div>
+            </div>
+            
+           
+            
+          </div>
+          <div class="col-sm-8">
+            <div class="center "style="margin-bottom: -3px;margin-top: -5px;" >
+              
+              <span style="font-size:1em;margin-right: 30px;" id="main-backward-btn" class="theme-control"><i class="fas fa-fast-backward" onclick="previous(currentId);" ></i></span>
+
+      <span style="font-size:2em;margin-right: 30px;" id="main-play-btn" class="theme-control" onclick="if(!current)return;playSong([currentId+'-play-song',currentId]);"><i class="far fa-play-circle"></i></span>
+
+      <span style="font-size:2em;margin-right: 30px;display: none;" class="theme-control" id="main-pause-btn" onclick="pauseSong([currentId+'-play-song',currentId]);"><i class="far fa-pause-circle"></i></span>
+
+      <span style="font-size:1em;margin-right: 10px;" id="main-forward-btn" onclick="next(currentId);" class="theme-control"><i class="fas fa-fast-forward"></i></span>
+      
+            </div>
+            
+              <div class="row" style="margin-top: -10px;">
+                <div class="col-sm-1" style="text-align: right;padding-right: 0px;padding-top: 0px;" >
+                  <span style="color: white;font-size: .8em; padding-top: 0px;" id="song-start">0:00</span>
+                </div>
+                <div class="col-sm-10 " style="justify-content: center;align-content: center;align-items: center;">
+
+                  <div class="progress md-progress " style="height: 5px;border-radius: 100px;margin-top: 10px;cursor: pointer;" id="pbar-container">
+              <div class="progress-bar" role="progressbar" style="width: 0%;border-radius: 100px;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" id="pbar"></div>
+             
+            </div>
+                </div>
+                <div class="col-sm-1 " style="text-align: left;padding-left: 0px;" >
+                  <span style="color: white;font-size: .8em; padding-top: 0px;" id="sond-end">0:00</span>
+                </div>
+              </div>
+
+          </div>
+
+          <div class="col-sm-2 " >
+            <div class="row " style="margin-top:33px;">
+              <div class="col-sm-2 ">
+                <span id="mute-btn"  class="theme-control"><i class="fas fa-volume-up theme-control" id="mute-icon" ></i></span>
+              </div>
+              <div class="col-sm-9 ">
+                <div class="progress md-progress " style="height: 5px;border-radius: 100px;margin-top: 10px;cursor: pointer;" id="vbar-container">
+              <div class="progress-bar" role="progressbar" style="width: 100%;border-radius: 100px;background-color: white;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" id="vbar"></div>
+             
+            </div>
+              </div>
+              <div class="col-sm-1"></div>
+            </div>
+            
+            
+          </div>
+        </div>
+           
+    </nav>
+    </div>
+
+
+    <script type="text/javascript">
+              $("#pbar-container").click(function(e){
+                if(!current)return;
+              var px=$(this).offset().left;
+              var hp=$(this).width();
+              var clicked=e.pageX-px;
+              var amt=Math.floor((clicked*100)/hp)
+              var skipamt=Math.floor((duration*amt)/100);
+              $("#pbar").css({'transition-duration':'0s'});
+               $("#pbar").css("width",amt+"%").attr("aria-valuenow",amt);
+               
+              current.seek(skipamt);
+
+             // console.log('duration: '+duration+' secs: '+skipamt+' and '+amt+'%')
+
+            })
+              $("#vbar-container").click(function(e){
+                if(!current)return;
+              var px=$(this).offset().left;
+              var hp=$(this).width();
+              var clicked=e.pageX-px;
+              var amt=Math.round((clicked*100)/hp)
+              if(amt>95)amt=100;
+              $("#vbar").css({'transition-duration':'0s'});
+               $("#vbar").css("width",amt+"%").attr("aria-valuenow",amt);
+              
+              volume=(amt/100)
+              current.volume(volume,soundId);
+
+              
+
+            })
+              $("#mute-btn").click(function(){
+                if(!current)return;
+                if(mute)
+                {
+                  $("#mute-icon").removeClass("fa-volume-mute").addClass('fa-volume-up');
+                  mute=false;
+                  $("#vbar").css("backgroundColor","blue");
+                  if(current)current.mute(mute,soundId);
+
+                }
+                  
+                  else
+                  {
+                    $("#mute-icon").removeClass("fa-volume-up").addClass('fa-volume-mute');
+                    mute=true;
+                    $("#vbar").css("backgroundColor","#565656");
+                    current.mute(mute,soundId);
+                  }
+                
+              });
+
+
+function marquee(id,hover)
+{
+
+  var card=document.getElementById(id);
+
+  var cardtextH=$(card).children().last().children().last();
+
+  var card_text=$(cardtextH).text();
+
+  if(hover)$(cardtextH).html("<marquee>"+card_text+"</marquee>");
+
+  else $(cardtextH).html(card_text);
+  
+}
+
+
+function setPlayingImg(track)
+{
+  mm.parseFile(track.path,{native:true}).then(metadata=>{
+  
+  var format=metadata.common.picture[0].format;
+
+  var data=metadata.common.picture[0].data;
+
+  var src=`data:${format};base64,`+data.toString('base64');
+
+  $("#now-playing").text(track.name);
+
+  $("#now-playing-img").attr("src",src);
+
+  $("#bg").attr("src",src);
+
+  }).catch(err=>{
+
+    $("#now-playing-img").attr("src","default.jpg");
+
+    $("#bg").attr("src","default.jpg");
+
+    $("#now-playing").text("Unknown");
+
+  });
+}
+
+function showPlayBtn(playbtn,pausebtn)
+{
+  $(playbtn).css("display","inline");
+
+  $(pausebtn).css("display","none");
+}
+
+
+function showPauseBtn(pausebtn,playbtn)
+{
+ 
+  $(playbtn).css("display","none");
+
+  $(pausebtn).css("display","inline");
+}
+
+
+function showOverlay(overlay)
+{
+  $(overlay).css("display","block");
+}
+
+
+function hideOverlay(overlay)
+{
+  $(overlay).removeAttr("style");
+}
+
+
+function makeHowl(path)
+{
+   return new Howl({src:[path],html5:true});
+}
+
+function cardPlayControl(trackArr)
+{
+ // alert(trackArr);
+  if(random)
+  {
+    toggleRandom();
+    playSong(trackArr);
+    toggleRandom();
+  }
+  else playSong(trackArr);
+}
+
+function cardNextControl(id)
+{
+  
+  if(random)
+  {
+    toggleRandom();
+    next(id);
+    toggleRandom();
+  }
+  else next(id);
+}
+
+
+function cardPreviousControl(id)
+{
+    if(random)
+  {
+    toggleRandom();
+    previous(id);
+    toggleRandom();
+  }
+  else previous(id);
+}
+
+
+function setnewTrackListStarted()
+{
+  newTrackListStarted=true;
+}
+
+
+function equals(value1,value2)
+{
+  return (value1===value2) 
+}
+
+
+function inTrackList(name,tracks)
+{
+  for(var i=0;i<tracks.length;i++)
+  {
+    if(name==tracks[i].name)return true;
+  }
+
+  return false;
+}
+
+
+function getCurrentId(id)
+{
+  for(var i=0;i<currentPlayList.length;i++)
+  {
+    if(equals(parseInt(id),parseInt(currentPlayList[i].id))) return i;
+  }
+}
+
+function playSong(trackArr)
+{
+
+  var id=trackArr[1];
+
+  var temp=id;
+
+  if(paused&&(id==currentId)&&(!newTrackList))
+  {
+    pauseSong(trackArr);
+
+    return;
+
+  }
+
+  if(newTrackList&&newTrackListStarted)
+    {
+      currentPlayList=JSON.parse(JSON.stringify(newPlayList));
+
+      currentPlayListClone=JSON.parse(JSON.stringify(currentPlayList));
+
+      if(random)currentPlayList=shuffle(currentPlayList);
+
+      newTrackList=false;
+
+      noStyle=false;
+
+    }
+    else noStyle=true;
+
+  if(current)
+    {
+        current.stop();
+
+        showPlayBtn('#'+currentId+'-play','#'+currentId+'-pause');
+
+        hideOverlay('#'+currentId+'-after'); 
+
+        if(inTrackList(currentPlayList[id].name,newPlayList))noStyle=false;
+
+        else noStyle=true; 
+
+        trackList=[];
+    }
+  if(!noStyle)
+  {
+
+    if(random)temp=currentPlayList[id].id;
+
+    showPauseBtn('#'+temp+'-pause','#'+temp+'-play');
+
+    showOverlay('#'+temp+'-after');
+
+    showPauseBtn("#main-pause-btn","#main-play-btn");
+
+  }
+
+  current=makeHowl(currentPlayList[id].path);
+
+  cancelAnimationFrame(pHandler);
+
+  currentId=currentPlayList[id].id;
+
+  soundId=current.play()
+
+  current.volume(volume,soundId)
+
+  $("#pbar").css("width","0%").attr("aria-valuenow","0")
+
+  setPlayingImg(currentPlayList[id]);
+
+
+
+  $("#pbar").css("backgroundColor","#ff065a");
+
+  $("#vbar").css("backgroundColor","#ff065a");
+
+  paused=false;
+  
+  
+  current.once('end',function(){setTimeout(function(){
+
+  if(replay)
+  {
+
+    playSong([currentId+'-play-song',currentId]);
+
+    return;
+
+  }
+
+  else
+
+    next(currentId);
+
+    },500);});
+
+  current.on('load',function()
+  {
+
+    duration=current.duration(soundId);
+
+    var min=Math.floor(parseFloat(duration)/60);
+
+    var sec=Math.ceil(duration)-(Math.floor(parseFloat(duration)/60)*60)
+
+    if(sec<10)sec='0'+sec;
+
+    $("#sond-end").text(min+":"+sec)
+
+  },soundId);
+  
+  setTimeout(function(){pHandler=requestAnimationFrame(setProgressBar);},500);
+
+}
+
+
+
+function pauseSong(trackArr)
+{
+  console.log(trackArr);
+
+  var id=trackArr[1];
+
+  if(paused)
+  {
+    
+    showPauseBtn('#'+id+'-pause','#'+id+'-play');
+
+    showPauseBtn("#main-pause-btn","#main-play-btn");
+
+    showOverlay('#'+id+'-after');
+
+    pCurrent.play();
+
+    pHandler=requestAnimationFrame(setProgressBar);
+
+    paused=false;
+
+  }
+  else
+  {
+    showPlayBtn('#'+id+'-play','#'+id+'-pause');
+
+    showPlayBtn("#main-play-btn","#main-pause-btn");
+
+    showOverlay('#'+id+'-after');
+
+    pCurrent=current.pause();
+
+    cancelAnimationFrame(pHandler);
+
+    paused=true;
+
+  }
+}
+
+
+function next(songid)
+{
+ 
+  var currentSongId=getCurrentId(songid);
+ 
+  
+  if(equals(songid,false))return;
+
+  if(!equals(parseInt(songid),parseInt(currentId)))return;
+
+  var nextID=currentSongId+1;
+
+  if(nextID>(currentPlayList.length-1))nextID=0;
+
+  playSong([nextID+'-play-song',nextID]);
+}
+
+
+function previous(songid)
+{
+  var currentSongId=getCurrentId(songid);
+
+  if(equals(songid,false))return;
+
+  if(!equals(parseInt(songid),parseInt(currentId)))return;
+
+  var nextID=currentSongId-1;
+
+  if(nextID<0)nextID=(currentPlayList.length-1);
+
+  playSong([nextID+'-play-song',nextID]);
+}
+
+
+function setProgressBar()
+{
+
+  var pos=current.seek(soundId);
+
+  var c=Math.round((pos*100)/duration);
+
+  $("#pbar").css({'transition-duration':'0s'});
+
+  $("#pbar").css("width",c+"%").attr("aria-valuenow",Math.round(c))
+
+  var min=Math.floor(parseFloat(pos)/60);
+
+  var sec=Math.floor(pos)-(Math.floor(parseFloat(pos)/60)*60)
+
+  if(sec<10)sec='0'+sec;
+
+  if(!isNaN(sec))
+
+  $("#song-start").text(min+":"+sec)
+
+  pHandler=requestAnimationFrame(setProgressBar);
+  
+}
+
+
+$("#replay").click(function(){
+
+  if(replay)
+  {
+    $("#replay").css("color","white");
+
+    replay=false;
+    if(temprand)
+    {
+      temprand=false;
+      random=true;
+    }
+  }
+  else
+  {
+    $("#replay").css("color",theme_color);
+
+    replay=true;   
+
+    if(random)
+  {
+    temprand=true;
+    toggleRandom();
+  }
+      
+  }
+
+});
+
+
+$("#random").click(function(){
+
+  if(random)
+  {
+    $("#random").css("color","white");
+    toggleRandom();
+
+  }
+  else
+  {
+    $("#random").css("color",theme_color);
+
+    toggleRandom();
+  }
+
+
+});
+
+function toggleRandom()
+{
+  if(random)
+  {
+    random=false;
+    currentPlayList=JSON.parse(JSON.stringify(currentPlayListClone));
+  }
+  else
+  {
+    random=true; 
+
+    currentPlayList=shuffle(currentPlayList);  
+  }
+}
+
+function shuffle(array)
+{
+
+  var currentIndex = array.length, temporaryValue, randomIndex;
+
+  while (0 !== currentIndex) {
+
+    randomIndex = Math.floor(Math.random() * currentIndex);
+
+    currentIndex -= 1;
+
+    temporaryValue = array[currentIndex];
+
+    array[currentIndex] = array[randomIndex];
+
+    array[randomIndex] = temporaryValue;
+  }
+
+  return array;
+}
+
+function sendOpenPlayList(id)
+{
+  ipc.send('test', id);
+}
+
+$("#search").click(search);
+
+function search()
+{
+  var SEARCH_RESULTS=[]
+    var keyword=$("#searchbar").val().toLowerCase().trim();
+    if(keyword=='')return;
+  for(var i=0;i<LIBRARY.length;i++)
+  {
+    for(var j=0;j<LIBRARY[i].tracks.length;j++)
+    {
+      var name=LIBRARY[i].tracks[j].name;
+      if(name.toLowerCase().indexOf(keyword)>-1)
+        SEARCH_RESULTS.push(LIBRARY[i].tracks[j])
+    }
+  }
+  ipc.send('show-result',SEARCH_RESULTS);
+}
+
+$("#quit").click(function(){
+  console.log('quit')
+  ipc.send('quit','')
+});
+
+function displaySearchResults(results)
+{
+
+    var files=results;
+   // LIBRARY=arg;
+    var output='';
+    var count=0;
+  output+='<div class="row">';
+var imgID=[];
+for(var i=0;i<files.length;i++)
+{
+  var displayName=files[i].folderName.substr(files[i].folderName.lastIndexOf('\\')+1,files[i].folderName.length)
+  
+  imgID.push(i);  
+  output+=`
+  <div class="col-sm-2">
+        <div class="card card-cascade" onmouseenter="marquee('card-${i}',true);" onmouseleave="marquee('card-${i}',false);" id="card-${i}" style="height:263.266px;cursor:pointer;" onclick="sendOpenPlayList(${i})">
+
+          
+          <div class="image-container">
+            <div class="view view-cascade overlay">
+            <img src="" class="card-img-top" data="${files[i].tracks[0].path}" id="img-${i}" class="img-fluid img-responsive">
+            <div class="mask rgba-white-slight"></div>
+          </div>
+          <div class="after" id="${i}-after">
+            <div class="after-content" style="margin-top:80px;">
+          
+            <span style="font-size:2em;margin:0.5em;cursor:pointer;"  id="${i}-play"><i class="far fa-play-circle"></i></span>
+            <span style="font-size:2em;margin:0.5em;cursor:pointer;display:none;" onclick="pauseSong(['${i}-play-song','${i}']);" id="${i}-pause" ><i class="far fa-pause-circle"></i></span>
+            
+            </div>
+          </div>
+        </div>
+        <div class="card-body elegant-color white-text rounded-bottom">
+          <h5 class="card-title text-truncate" ></h5>
+          <p class="card-text text-truncate" style="height:19px;" id="song-name-${i}" data="${displayName}">${displayName}</p>
+        </div>
+    </div>
+    </div>
+    `;
+    count++;
+  if(count%6==0)
+  {
+    if(count>0)
+    output+='</div><br><div class="row">';
+  }
+  
+
+}
+document.getElementById('content').innerHTML=output;
+$(".opendir").css("display","block");
+
+
+extractImage(imgID,false)
+}
+</script>
+  </body>
+</html>
