@@ -25,7 +25,7 @@
     "filereader-stream": "^2.0.0",
     "howler": "^2.1.2",
     "jquery": "^3.4.1",
-    "jsdom": "^15.1.0",
+    "jsdom": "^16.5.0",
     "music-metadata": "^4.0.1",
     "walk": "^2.3.14"
   }
